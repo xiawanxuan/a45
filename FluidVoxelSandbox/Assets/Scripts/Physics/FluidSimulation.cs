@@ -126,6 +126,8 @@ namespace FluidVoxelSandbox.Physics
 
         private void UpdateLiquid(int x, int y, float dt)
         {
+            if (!_map.InBounds(x, y)) return;
+
             Voxel voxel = _map.GetVoxel(x, y);
             if (!voxel.IsLiquid) return;
 
@@ -154,7 +156,7 @@ namespace FluidVoxelSandbox.Physics
                 {
                     float belowDensity = below.Density;
                     float thisDensity = voxel.Density;
-                    if (thisDensity > belowDensity)
+                    if (thisDensity > belowDensity && _map.InBounds(x, belowY))
                     {
                         _map.SwapVoxels(x, y, x, belowY);
                         MarkChunkActive(x, y);
@@ -183,7 +185,7 @@ namespace FluidVoxelSandbox.Physics
                 }
                 else if (neighbor.IsLiquid && neighbor.Type != liquidType)
                 {
-                    if (voxel.Density > neighbor.Density)
+                    if (voxel.Density > neighbor.Density && _map.InBounds(nx, y))
                     {
                         _map.SwapVoxels(x, y, nx, y);
                         MarkChunkActive(x, y);
@@ -213,6 +215,7 @@ namespace FluidVoxelSandbox.Physics
 
         private void UpdateLiquidFreeFloat(int x, int y, float dt, float moveChance)
         {
+            if (!_map.InBounds(x, y)) return;
             if (_windField == null || GameManager.Instance == null || !GameManager.Instance.enableWind) return;
 
             Vector2 wind = _windField.GetWindAt(x, y) * windInfluence;
@@ -243,6 +246,8 @@ namespace FluidVoxelSandbox.Physics
 
         private void TryMoveLiquid(int fromX, int fromY, int toX, int toY)
         {
+            if (!_map.InBounds(fromX, fromY) || !_map.InBounds(toX, toY)) return;
+
             VoxelType type = _map.GetVoxelType(fromX, fromY);
             _map.SetVoxel(toX, toY, type, false);
             _map.SetVoxel(fromX, fromY, VoxelType.Empty, false);
@@ -263,6 +268,8 @@ namespace FluidVoxelSandbox.Physics
 
         private void UpdateGas(int x, int y, float dt)
         {
+            if (!_map.InBounds(x, y)) return;
+
             Voxel voxel = _map.GetVoxel(x, y);
             if (!voxel.IsGas) return;
 
@@ -321,7 +328,7 @@ namespace FluidVoxelSandbox.Physics
             }
             else if (target.IsGas)
             {
-                if (density < target.Density)
+                if (density < target.Density && _map.InBounds(nx, ny))
                 {
                     _map.SwapVoxels(x, y, nx, ny);
                     MarkChunkActive(x, y);
@@ -347,11 +354,14 @@ namespace FluidVoxelSandbox.Physics
                         }
                     }
                 }
+                return;
             }
         }
 
         private void TryMoveGas(int fromX, int fromY, int toX, int toY, VoxelType type)
         {
+            if (!_map.InBounds(fromX, fromY) || !_map.InBounds(toX, toY)) return;
+
             _map.SetVoxel(toX, toY, type, false);
             _map.SetVoxel(fromX, fromY, VoxelType.Empty, false);
             MarkChunkActive(fromX, fromY);
@@ -360,6 +370,7 @@ namespace FluidVoxelSandbox.Physics
 
         private void TryDiffuseGas(int x, int y, VoxelType type, float dt)
         {
+            if (!_map.InBounds(x, y)) return;
             if (Random.value > gasDiffusionRate * dt) return;
 
             int[] dirsX = { 1, -1, 0, 0 };
