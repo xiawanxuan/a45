@@ -90,7 +90,7 @@ namespace FluidVoxelSandbox.UI
             _scrollPosition = GUI.BeginScrollView(
                 new Rect(contentX, y, contentWidth, panelHeight - 20f),
                 _scrollPosition,
-                new Rect(0, 0, contentWidth - 20f, 800f));
+                new Rect(0, 0, contentWidth - 20f, 1200f));
 
             float localY = 0f;
 
@@ -111,6 +111,22 @@ namespace FluidVoxelSandbox.UI
             }
             localY += 30f;
 
+            VoxelType[] solidReactiveTypes = { VoxelType.Obsidian, VoxelType.Glass, VoxelType.Ice, VoxelType.Mud, VoxelType.Salt, VoxelType.Concrete, VoxelType.Rust, VoxelType.Ash, VoxelType.Crystal };
+            GUI.Label(new Rect(0, localY, contentWidth, 18f), "反应固体:", _labelStyle);
+            localY += 20f;
+            for (int i = 0; i < solidReactiveTypes.Length; i++)
+            {
+                float bx = (i % 4) * 60f;
+                float by = (i / 4) * 28f;
+                if (GUI.Button(new Rect(bx, localY + by, 55f, 25f), solidReactiveTypes[i].ToString(), _buttonStyle))
+                {
+                    _selectedType = solidReactiveTypes[i];
+                    _eraseMode = false;
+                    UpdatePlayerController();
+                }
+            }
+            localY += Mathf.Ceil((float)solidReactiveTypes.Length / 4f) * 28f + 5f;
+
             VoxelType[] liquidTypes = { VoxelType.Water, VoxelType.Oil, VoxelType.Lava };
             GUI.Label(new Rect(0, localY, contentWidth, 18f), "液体:", _labelStyle);
             localY += 20f;
@@ -125,6 +141,20 @@ namespace FluidVoxelSandbox.UI
             }
             localY += 30f;
 
+            VoxelType[] liquidReactiveTypes = { VoxelType.Acid, VoxelType.Lye, VoxelType.Alcohol };
+            GUI.Label(new Rect(0, localY, contentWidth, 18f), "反应液体:", _labelStyle);
+            localY += 20f;
+            for (int i = 0; i < liquidReactiveTypes.Length; i++)
+            {
+                if (GUI.Button(new Rect(i * 60f, localY, 55f, 25f), liquidReactiveTypes[i].ToString(), _buttonStyle))
+                {
+                    _selectedType = liquidReactiveTypes[i];
+                    _eraseMode = false;
+                    UpdatePlayerController();
+                }
+            }
+            localY += 30f;
+
             VoxelType[] gasTypes = { VoxelType.Smoke, VoxelType.Steam, VoxelType.ToxicGas };
             GUI.Label(new Rect(0, localY, contentWidth, 18f), "气体:", _labelStyle);
             localY += 20f;
@@ -133,6 +163,20 @@ namespace FluidVoxelSandbox.UI
                 if (GUI.Button(new Rect(i * 60f, localY, 55f, 25f), gasTypes[i].ToString(), _buttonStyle))
                 {
                     _selectedType = gasTypes[i];
+                    _eraseMode = false;
+                    UpdatePlayerController();
+                }
+            }
+            localY += 30f;
+
+            VoxelType[] gasReactiveTypes = { VoxelType.Fire, VoxelType.Foam };
+            GUI.Label(new Rect(0, localY, contentWidth, 18f), "反应气体:", _labelStyle);
+            localY += 20f;
+            for (int i = 0; i < gasReactiveTypes.Length; i++)
+            {
+                if (GUI.Button(new Rect(i * 60f, localY, 55f, 25f), gasReactiveTypes[i].ToString(), _buttonStyle))
+                {
+                    _selectedType = gasReactiveTypes[i];
                     _eraseMode = false;
                     UpdatePlayerController();
                 }
@@ -230,6 +274,25 @@ namespace FluidVoxelSandbox.UI
             }
             localY += 35f;
 
+            GUI.Label(new Rect(0, localY, contentWidth, 20f), "【化合反应】", _titleStyle);
+            localY += 25f;
+            if (GameManager.Instance != null && GameManager.Instance.VoxelChemistry != null)
+            {
+                Color oldC2 = GUI.backgroundColor;
+                GUI.backgroundColor = GameManager.Instance.VoxelChemistry.enableReactions ? new Color(0.3f, 0.8f, 0.4f) : oldBg;
+                if (GUI.Button(new Rect(0, localY, contentWidth * 0.48f, 28f),
+                    GameManager.Instance.VoxelChemistry.enableReactions ? "反应系统: 开" : "反应系统: 关", _buttonStyle))
+                {
+                    GameManager.Instance.VoxelChemistry.enableReactions = !GameManager.Instance.VoxelChemistry.enableReactions;
+                }
+                GUI.backgroundColor = oldC2;
+                if (GUI.Button(new Rect(contentWidth * 0.52f, localY, contentWidth * 0.48f, 28f), $"本步反应: {GameManager.Instance.VoxelChemistry.reactionsThisStep}", _buttonStyle)) { }
+                localY += 35f;
+                GUI.Label(new Rect(0, localY, contentWidth, 18f), $"累计反应数: {GameManager.Instance.VoxelChemistry.totalReactions}", _labelStyle);
+                localY += 25f;
+            }
+            localY += 15f;
+
             GUI.Label(new Rect(0, localY, contentWidth, 20f), "【操作说明】", _titleStyle);
             localY += 25f;
 
@@ -244,7 +307,18 @@ namespace FluidVoxelSandbox.UI
                 "1-9: 快速选择材质\n" +
                 "G: 切换风向预设\n" +
                 "+ / -: 调整风速\n" +
-                "Tab: 显示/隐藏面板";
+                "H: 风场可视化开关\n" +
+                "Tab: 显示/隐藏面板\n" +
+                "\n常用反应组合:\n" +
+                "熔岩+水 → 黑曜石+蒸汽\n" +
+                "熔岩+沙 → 玻璃\n" +
+                "酸+碱 → 盐+水\n" +
+                "火+草 → 灰烬+烟\n" +
+                "火+油 → 燃烧+烟\n" +
+                "火+酒精 → 燃烧扩散\n" +
+                "水+土 → 淤泥\n" +
+                "酸+石头 → 盐\n" +
+                "碱+油 → 泡沫";
 
             GUI.Label(new Rect(0, localY, contentWidth, 250f), helpText, _labelStyle);
             localY += 260f;

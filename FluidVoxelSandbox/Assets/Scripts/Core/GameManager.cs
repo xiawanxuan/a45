@@ -34,6 +34,7 @@ namespace FluidVoxelSandbox.Core
         public WindController WindController { get; private set; }
         public FluidSimulation FluidSimulation { get; private set; }
         public VoxelCollision VoxelCollision { get; private set; }
+        public VoxelChemistry VoxelChemistry { get; private set; }
         public SaveSystem SaveSystem { get; private set; }
         public PlayerController PlayerController { get; private set; }
         public VoxelRenderer VoxelRenderer { get; private set; }
@@ -89,6 +90,11 @@ namespace FluidVoxelSandbox.Core
                 VoxelCollision.Initialize(VoxelMap);
             }
 
+            if (VoxelChemistry != null)
+            {
+                VoxelChemistry.Initialize(VoxelMap, VoxelCollision);
+            }
+
             if (VoxelRenderer != null)
             {
                 VoxelRenderer.Initialize(VoxelMap);
@@ -134,6 +140,7 @@ namespace FluidVoxelSandbox.Core
             }
             FluidSimulation = physicsParent.GetComponent<FluidSimulation>() ?? physicsParent.gameObject.AddComponent<FluidSimulation>();
             VoxelCollision = physicsParent.GetComponent<VoxelCollision>() ?? physicsParent.gameObject.AddComponent<VoxelCollision>();
+            VoxelChemistry = physicsParent.GetComponent<VoxelChemistry>() ?? physicsParent.gameObject.AddComponent<VoxelChemistry>();
 
             Transform rendererParent = transform.Find("VoxelRenderer");
             if (rendererParent == null)
@@ -206,6 +213,7 @@ namespace FluidVoxelSandbox.Core
                 WindField?.UpdateWindField(stepDt);
                 FluidSimulation?.Step(stepDt);
                 VoxelCollision?.CheckCollisions(stepDt);
+                VoxelChemistry?.StepChemistry(stepDt);
             }
         }
 

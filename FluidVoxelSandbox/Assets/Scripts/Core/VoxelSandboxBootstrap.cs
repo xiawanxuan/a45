@@ -225,6 +225,13 @@ namespace FluidVoxelSandbox.Core
                 GameManager.Instance.VoxelCollision.Initialize(GameManager.Instance.VoxelMap);
             }
 
+            if (GameManager.Instance.VoxelChemistry != null)
+            {
+                GameManager.Instance.VoxelChemistry.Initialize(
+                    GameManager.Instance.VoxelMap,
+                    GameManager.Instance.VoxelCollision);
+            }
+
             if (GameManager.Instance.VoxelRenderer != null)
             {
                 GameManager.Instance.VoxelRenderer.Initialize(GameManager.Instance.VoxelMap);
